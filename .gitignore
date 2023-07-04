@@ -1,2 +1,2 @@
 *.o
-*.lsp/
+*/compile_commands.json
