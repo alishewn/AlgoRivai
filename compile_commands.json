@@ -1,0 +1,128 @@
+[
+    {
+        "arguments": [
+            "/work/home18/fupeng/dev/rugrats/output/gcc/bin/riscv32-rivai-elf-gcc", 
+            "-c", 
+            "-Wall", 
+            "-I.", 
+            "-I./utils", 
+            "-mcmodel=medany", 
+            "-O3", 
+            "-mcpu=rugrats", 
+            "-mtune=rugrats_conure", 
+            "-march=rv32imafcv", 
+            "-fno-var-tracking-assignments", 
+            "-o", 
+            "utils/log.o", 
+            "utils/log.c"
+        ], 
+        "directory": "/work/home18/fupeng/dev/rugrats/samsung_risc", 
+        "file": "utils/log.c"
+    }, 
+    {
+        "arguments": [
+            "/work/home18/fupeng/dev/rugrats/output/gcc/bin/riscv32-rivai-elf-gcc", 
+            "-c", 
+            "-Wall", 
+            "-I.", 
+            "-I./utils", 
+            "-mcmodel=medany", 
+            "-O3", 
+            "-mcpu=rugrats", 
+            "-mtune=rugrats_conure", 
+            "-march=rv32imafcv", 
+            "-fno-var-tracking-assignments", 
+            "-o", 
+            "utils/common.o", 
+            "utils/common.c"
+        ], 
+        "directory": "/work/home18/fupeng/dev/rugrats/samsung_risc", 
+        "file": "utils/common.c"
+    }, 
+    {
+        "arguments": [
+            "/work/home18/fupeng/dev/rugrats/output/gcc/bin/riscv32-rivai-elf-gcc", 
+            "-c", 
+            "-Wall", 
+            "-I.", 
+            "-I./utils", 
+            "-mcmodel=medany", 
+            "-O3", 
+            "-mcpu=rugrats", 
+            "-mtune=rugrats_conure", 
+            "-march=rv32imafcv", 
+            "-fno-var-tracking-assignments", 
+            "-o", 
+            "utils/bsp_print.o", 
+            "utils/bsp_print.c"
+        ], 
+        "directory": "/work/home18/fupeng/dev/rugrats/samsung_risc", 
+        "file": "utils/bsp_print.c"
+    }, 
+    {
+        "arguments": [
+            "/work/home18/fupeng/dev/rugrats/output/gcc/bin/riscv32-rivai-elf-gcc", 
+            "-c", 
+            "-Wall", 
+            "-I.", 
+            "-I./utils", 
+            "-mcmodel=medany", 
+            "-O3", 
+            "-mcpu=rugrats", 
+            "-mtune=rugrats_conure", 
+            "-march=rv32imafcv", 
+            "-fno-var-tracking-assignments", 
+            "-nostartfiles", 
+            "utils/bsp_print.o", 
+            "utils/common.o", 
+            "utils/log.o", 
+            "main_with_prints.o", 
+            "matrix_funs.o", 
+            "-o", 
+            "./sample.elf", 
+            "boot.S"
+        ], 
+        "directory": "/work/home18/fupeng/dev/rugrats/samsung_risc", 
+        "file": "boot.S"
+    }, 
+    {
+        "arguments": [
+            "/work/home18/fupeng/dev/rugrats/output/gcc/bin/riscv32-rivai-elf-gcc", 
+            "-c", 
+            "-Wall", 
+            "-I.", 
+            "-I./utils", 
+            "-mcmodel=medany", 
+            "-O3", 
+            "-mcpu=rugrats", 
+            "-mtune=rugrats_conure", 
+            "-march=rv32imafcv", 
+            "-fno-var-tracking-assignments", 
+            "-o", 
+            "main_with_prints.o", 
+            "main_with_prints.c"
+        ], 
+        "directory": "/work/home18/fupeng/dev/rugrats/samsung_risc", 
+        "file": "main_with_prints.c"
+    }, 
+    {
+        "arguments": [
+            "/work/home18/fupeng/dev/rugrats/output/gcc/bin/riscv32-rivai-elf-gcc", 
+            "-c", 
+            "-Wall", 
+            "-I.", 
+            "-I./utils", 
+            "-mcmodel=medany", 
+            "-O3", 
+            "-mcpu=rugrats", 
+            "-mtune=rugrats_conure", 
+            "-march=rv32imafcv", 
+            "-fno-var-tracking-assignments", 
+            "-o", 
+            "matrix_funs.o", 
+            "matrix_funs.c"
+        ], 
+        "directory": "/work/home18/fupeng/dev/rugrats/samsung_risc", 
+        "file": "matrix_funs.c"
+    }
+]
