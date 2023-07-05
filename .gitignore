@@ -1,3 +1,5 @@
-*.o
-*/.lsp/
+.lsp/
 ./compile_commands.json
+.cache/
+build/
+output/
