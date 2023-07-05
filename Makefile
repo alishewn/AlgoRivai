@@ -1,7 +1,7 @@
 ######################################################################
-CROSS_COMPILER_ROOT   = $(PROJ_ROOT)/output/gcc/bin
+CROSS_COMPILER_ROOT   = $(PROJ_ROOT)/output/gcc
 CROSS_COMPILER_PREFIX = riscv32-rivai-elf-
-CROSS_COMPILER        = $(CROSS_COMPILER_ROOT)/$(CROSS_COMPILER_PREFIX)
+CROSS_COMPILER        = $(CROSS_COMPILER_ROOT)/bin/$(CROSS_COMPILER_PREFIX)
 ######################################################################
 
 ######################################################################
@@ -26,6 +26,7 @@ debug     = y
 
 #####################################################################
 INC         = ./ ./utils
+INC        += $(CROSS_COMPILER_ROOT)/lib/gcc/riscv32-rivai-elf/10.2.1/include
 INCDIRS    := $(addprefix -I, $(INC))
 
 C_SOURCES   = $(shell find ./ -name '*.c')
@@ -118,7 +119,7 @@ $(OUT_DIR):
 
 clean:
 	-rm -fR .dep $(BUILD_DIR) $(OUT_DIR)
-	@find . -iname '*.o' -o -iname '*.bak' -o -iname '*.d' | xargs rm -f
+	@find . -iname '*.o' -o -iname '*.bak' -o -iname '*.d' -o -iname "compile_commands.json" | xargs rm -f
 
 run:
 	@echo

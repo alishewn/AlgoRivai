@@ -4,6 +4,11 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef MAT_ODR
+#define MAT_ODR (3)
+#endif /* ifndef MAT_ODR */
+
 static double sat_int(int a, int n) {
   int res = 0;
   if (a > pow(2, n - 1)) {
@@ -38,6 +43,7 @@ static double complex comp_sat(double complex a, int n) {
 void multiply_with_transpose_stk(double complex *mat, int row, int col,
                                  double complex **stk_out) {
   double complex *res = *stk_out;
+  memset(res, 0, row * col);
   if (res == NULL) {
     printj("cannot alloc memories! \n");
   }
@@ -54,26 +60,6 @@ void multiply_with_transpose_stk(double complex *mat, int row, int col,
     }
   }
   return;
-}
-double complex *multiply_with_transpose(double complex *mat, int row, int col) {
-  double complex *res =
-      (double complex *)malloc(sizeof(double complex) * row * row);
-  if (res == NULL) {
-    printj("cannot alloc memories! \n");
-  }
-  memset(res, 0, sizeof(double complex) * row * row);
-
-  for (int i = 0; i < row; ++i) {
-    for (int j = 0; j < i + 1; ++j) {
-      double complex tmp_sum = 0.0 + 0.0 * I;
-      for (int k = 0; k < col; ++k) {
-        tmp_sum += mat[i * col + k] * conj(mat[j * col + k]);
-      }
-      res[i * col + j] = comp_sat(tmp_sum, 32);
-      res[j * col + i] = res[i * col + j];
-    }
-  }
-  return res;
 }
 
 void cholesky_decomposition_stk(double complex *her_mat, int dim,
@@ -105,6 +91,100 @@ void cholesky_decomposition_stk(double complex *her_mat, int dim,
   return;
 }
 
+void fill_upper_triangular_stk(double complex **mat, int dim) {
+  for (int i = 0; i < dim; ++i) {
+    for (int j = 0; j < i + 1; ++j) {
+      (*mat)[j * dim + i] = (*mat)[i * dim + j];
+    }
+  }
+  return;
+}
+
+void intermediate_diagnal_inverse_matrix_stk(double complex *mat, int dim,
+                                             double complex **stk_out) {
+  double complex *res = *stk_out;
+  memset(res, 0, sizeof(double complex) * dim);
+  for (int i = 0; i < dim; ++i) {
+    res[i * dim + i] = 1 / mat[i * dim + i] * 16;
+  }
+  return;
+}
+
+void backward_stk(double complex *b, double complex *r, double complex *s,
+                  int row, int col, double complex **stk_out) {
+  double complex *res = *stk_out;
+  for (int i = 0; i < col; ++i) {
+    for (int j = 0; j < row; ++j) {
+      double complex tmp_sum = 0.0 + 0.0 * I;
+      for (int k = 0; k < col; ++k) {
+        tmp_sum += r[j * col + k] * res[k * col + i];
+      }
+      res[j * col + i] = (b[j * col + i] - tmp_sum) * s[j * col + j];
+      res[j * col + i] = comp_sat(res[j * col + i], 16);
+    }
+  }
+  return;
+}
+
+void forward_stk(double complex *c, double complex *r, double complex *s,
+                 int row, int col, double complex **stk_out) {
+  double complex *res = *stk_out;
+  for (int i = col - 1; i >= 0; --i) {
+    for (int j = row - 1; j >= 0; --j) {
+      double complex tmp_sum = 0.0 + -0.0 * I;
+      for (int k = j + 1; k < row; ++k) {
+        tmp_sum += conj(r[k * row + j]) * res[k * row + i];
+      }
+      res[j * row + i] = (c[j * row + i] - tmp_sum) * s[j * row + j];
+      res[j * row + i] = comp_sat(res[j * row + i], 16);
+    }
+  }
+  return;
+}
+
+void get_invers_of_mat_multi_trans_mat_stk(double complex *mat,
+                                           double complex **out) {
+
+  double complex amah[MAT_ODR][MAT_ODR] = {0};
+  double complex *p_amah = &amah[0][0];
+  multiply_with_transpose_stk(mat, MAT_ODR, MAT_ODR, &p_amah);
+
+  double complex chol[MAT_ODR][MAT_ODR] = {0};
+  double complex *p_chol = &chol[0][0];
+  cholesky_decomposition_stk(p_amah, MAT_ODR, &p_chol);
+  fill_upper_triangular_stk(&p_chol, MAT_ODR);
+
+  double complex inte[MAT_ODR][MAT_ODR] = {0};
+  double complex *p_inte = &inte[0][0];
+  intermediate_diagnal_inverse_matrix_stk(p_chol, MAT_ODR, &p_inte);
+
+  double complex back[MAT_ODR][MAT_ODR] = {0};
+  double complex *p_back = &back[0][0];
+  backward_stk(mat, p_chol, p_inte, MAT_ODR, MAT_ODR, &p_back);
+
+  forward_stk(p_back, p_chol, p_inte, MAT_ODR, MAT_ODR, out);
+}
+
+double complex *multiply_with_transpose_heap(double complex *mat, int row,
+                                             int col) {
+  double complex *res =
+      (double complex *)malloc(sizeof(double complex) * row * col);
+  memset(res, 0, sizeof(double complex) * row * row);
+
+  for (int i = 0; i < row; ++i) {
+    for (int j = 0; j < i + 1; ++j) {
+      double complex tmp_sum = 0.0 + 0.0 * I;
+      for (int k = 0; k < col; ++k) {
+        tmp_sum += mat[i * col + k] * conj(mat[j * col + k]);
+      }
+      res[i * col + j] = comp_sat(tmp_sum, 32);
+      res[j * col + i] = res[i * col + j];
+    }
+  }
+
+  return res;
+}
+
 double complex *cholesky_decomposition(double complex *her_mat, int dim) {
   double complex *res =
       (double complex *)malloc(sizeof(double complex) * dim * dim);
@@ -132,15 +212,6 @@ double complex *cholesky_decomposition(double complex *her_mat, int dim) {
     }
   }
   return res;
-}
-
-void fill_upper_triangular_stk(double complex **mat, int dim) {
-  for (int i = 0; i < dim; ++i) {
-    for (int j = 0; j < i + 1; ++j) {
-      (*mat)[j * dim + i] = (*mat)[i * dim + j];
-    }
-  }
-  return;
 }
 
 double complex *fill_upper_triangular(double complex *mat, int dim) {
@@ -202,48 +273,6 @@ static void transpose_tile_diag(int pos, int dim, double complex *mat) {
 double complex *advanced_square_transpose(double complex *mat, int dim) {
   transpose_tile_diag(0, dim, mat);
   return mat;
-}
-
-void intermediate_diagnal_inverse_matrix_stk(double complex *mat, int dim,
-                                             double complex **stk_out) {
-  double complex *res = *stk_out;
-  memset(res, 0, sizeof(double complex) * dim);
-  for (int i = 0; i < dim; ++i) {
-    res[i * dim + i] = 1 / mat[i * dim + i] * 16;
-  }
-  return;
-}
-
-void backward(double complex *b, double complex *r, double complex *s, int row,
-              int col, double complex **stk_out) {
-  double complex *res = *stk_out;
-  for (int i = 0; i < col; ++i) {
-    for (int j = 0; j < row; ++j) {
-      double complex tmp_sum = 0.0 + 0.0 * I;
-      for (int k = 0; k < col; ++k) {
-        tmp_sum += r[j * col + k] * res[k * col + i];
-      }
-      res[j * col + i] = (b[j * col + i] - tmp_sum) * s[j * col + j];
-      res[j * col + i] = comp_sat(res[j * col + i], 16);
-    }
-  }
-  return;
-}
-
-void forward(double complex *c, double complex *r, double complex *s, int row,
-             int col, double complex **stk_out) {
-  double complex *res = *stk_out;
-  for (int i = col - 1; i >= 0; --i) {
-    for (int j = row - 1; j >= 0; --j) {
-      double complex tmp_sum = 0.0 + -0.0 * I;
-      for (int k = j + 1; k < row; ++k) {
-        tmp_sum += conj(r[k * row + j]) * res[k * row + i];
-      }
-      res[j * row + i] = (c[j * row + i] - tmp_sum) * s[j * row + j];
-      res[j * row + i] = comp_sat(res[j * row + i], 16);
-    }
-  }
-  return;
 }
 
 static int len_integer_part(double in) {
@@ -315,6 +344,26 @@ void double_to_str(double num, int left_align, int align_width, char *str_out) {
   str_out[index] = '\0';
 }
 
+double complex *multiply_with_transpose(double complex *mat, int row, int col) {
+  double complex *res =
+      (double complex *)malloc(sizeof(double complex) * row * row);
+  if (res == NULL) {
+    printj("cannot alloc memories! \n");
+  }
+  memset(res, 0, sizeof(double complex) * row * row);
+
+  for (int i = 0; i < row; ++i) {
+    for (int j = 0; j < i + 1; ++j) {
+      double complex tmp_sum = 0.0 + 0.0 * I;
+      for (int k = 0; k < col; ++k) {
+        tmp_sum += mat[i * col + k] * conj(mat[j * col + k]);
+      }
+      res[i * col + j] = comp_sat(tmp_sum, 32);
+      res[j * col + i] = res[i * col + j];
+    }
+  }
+  return res;
+}
 void print_complex_matrix(double complex *mat, int row, int col) {
   int rmax = 0, imax = 0;
   for (int i = 0; i < row; ++i) {

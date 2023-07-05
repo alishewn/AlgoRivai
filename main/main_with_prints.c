@@ -42,14 +42,22 @@ int main(void) {
 
   double complex back[3][3] = {0};
   double complex *back_ptr = &back[0][0];
-  backward(*original, cholesky_stk_ptr, intermediate_stk_ptr, 3, 3, &back_ptr);
+  backward_stk(*original, cholesky_stk_ptr, intermediate_stk_ptr, 3, 3,
+               &back_ptr);
   printj("6. backward is as follows: \n");
   print_complex_matrix(back_ptr, 3, 3);
 
   double complex res[3][3] = {0};
   double complex *res_ptr = &res[0][0];
-  forward(back_ptr, cholesky_stk_ptr, intermediate_stk_ptr, 3, 3, &res_ptr);
+  forward_stk(back_ptr, cholesky_stk_ptr, intermediate_stk_ptr, 3, 3, &res_ptr);
   printj("7. res = Matrix A's inversion(aka A^-1): \n");
   print_complex_matrix(res_ptr, 3, 3);
+
+  double complex res2[3][3] = {0};
+  double complex *res2_ptr = &res2[0][0];
+  get_invers_of_mat_multi_trans_mat_stk(*original, &res2_ptr);
+  print_complex_matrix(res2_ptr, 3, 3);
+
+  FINISH(0);
   return 0;
 }
